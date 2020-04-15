@@ -1,0 +1,35 @@
+version: '3.2'
+
+services:
+    server:
+        build: ./backend
+        stop_signal: SIGINT
+        expose:
+            - 5000
+        ports:
+            - 5000:5000
+        networks:
+            - apiNetwork
+        volumes:
+            # for windows users
+            # -
+            # for unix users
+            - ./backend/datasets:/app/datasets
+            - ./backend/embeddings:/app/embeddings
+            - ./backend/label_csv:/app/label_csv
+
+    client:
+        build: ./frontend
+        expose:
+            - 8080
+        ports:
+            - 8080:80
+        links:
+            - server
+        depends_on:
+            - server
+        networks:
+              - apiNetwork
+
+networks:
+  apiNetwork:
