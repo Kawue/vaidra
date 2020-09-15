@@ -198,25 +198,27 @@ def get_embedding_data(embedding_name):
     for (gx, gy, ds), val in ex.iteritems():
         gx = int(gx)
         gy = int(gy)
-        xval = float(round(val, 6))
-        yval = float(round(ey[(gx, gy, ds)], 6))
-        key = str(xval) + ";" + str(yval) + ";" + str(ds)
+        xval = round(float(val), 10)
+        yval = round(float(ey[(gx, gy, ds)]), 10)
+
+        key = "{:.10f}".format(xval).rstrip("0") + ";" + "{:.10f}".format(yval).rstrip("0") + ";{:s}".format(ds)
         pixels[key] = {
             "px": gx,
             "py": gy,
             "dataset": ds
         }
-        key = str(gx) + ";" + str(gy) + ";" + str(ds)
+
+        key = "{:d};{:d};{:s}".format(gx, gy, ds)
         intensities[key] = {
             "x": xval,
             "y": yval,
             "dataset": ds
         }
 
-    intensities["xmin"] = float(round(ex.min(), 6))
-    intensities["xmax"] = float(round(ex.max(), 6))
-    intensities["ymin"] = float(round(ey.min(), 6))
-    intensities["ymax"] = float(round(ey.max(), 6))
+    intensities["xmin"] = float(round(ex.min(), 10))
+    intensities["xmax"] = float(round(ex.max(), 10))
+    intensities["ymin"] = float(round(ey.min(), 10))
+    intensities["ymax"] = float(round(ey.max(), 10))
 
     gx_ex = ex.index.get_level_values("grid_x")
     gy_ex = ex.index.get_level_values("grid_y")
@@ -224,7 +226,7 @@ def get_embedding_data(embedding_name):
     pixels["xmax"] = int(gx_ex.max())
     pixels["ymin"] = int(gy_ex.min())
     pixels["ymax"] = int(gy_ex.max())
-
+    
     response = {"pixels": pixels, "intensities": intensities}
     return json.dumps(response)
 

@@ -21,7 +21,7 @@
                 v-model="selectedDimensions"
                 class="mx-4"
                 max="50"
-                min="3"
+                min="2"
                 step="1"
                 style="width: 125px"
                 type="number"

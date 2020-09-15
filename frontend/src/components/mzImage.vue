@@ -312,7 +312,7 @@ export default {
           if (pixels.length === 0) {
             rootCtx.globalAlpha = 1;
           } else {
-            rootCtx.globalAlpha = 0.4;
+            rootCtx.globalAlpha = 0.2;
             rootCtx.fillStyle = "gray";
             rootCtx.fillRect(0, 0, canvas.width, canvas.height);
 

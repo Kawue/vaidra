@@ -170,7 +170,7 @@ export default {
       lassoCanvas: null,
       highlightCanvas: null,
       zoom: null,
-      pointsFillColors: ["steelblue", "red", "green", "purple", "grey"],
+      pointsFillColors: ["steelblue", "red", "green", "purple", "grey", "teal", "fuchsia", "maroon", "coral", "navy", "darkgoldenrod", "darkslategray", "darkseagreen", "darkkhaki", "chartreuse", "mediumspringgreen", "mediumorchid", "mediumvioletred", "limegreen", "orangered"],
       lassoPointsFillColor: ["orange"],
       highlightPointsFillColor: "crimson",
       loadedLabledData: [],
@@ -456,7 +456,7 @@ console.log(this.brushData);
         .then(response => {
           let rawData = response.data;
           this.label = rawData[0][2];
-          console.log(rawData[0]);
+          //console.log(rawData[0]);
           let arr = [];
           rawData.map(a => arr.push([a[0], a[1]]));
           this.loadedLabledData = arr.map(a => a.map(Number));
@@ -511,8 +511,12 @@ console.log(this.brushData);
             d3.polygonContains(lassoPolygon, [this.xScale(x), this.yScale(y)])
           ) {
             let kkey = x + ";" + y + ";" + d;
+            if (this.dataObject.pixels[kkey] !== undefined){
             this.brushData.push([this.dataObject.pixels[kkey].px,this.dataObject.pixels[kkey].py]);
-             this.lassoSelectedData.push(this.dataObject.pixels[kkey]);
+            this.lassoSelectedData.push(this.dataObject.pixels[kkey]);
+            } else {
+              console.log(kkey)
+            }
           }
         });
       // this.lassoCanvas
@@ -585,7 +589,7 @@ console.log(this.brushData);
         axios
           .post(url_submitLabeling, formData)
           .then(response => {
-            console.log(response.data);
+            //console.log(response.data);
             this.label = "";
             this.request_csvs(this.selectedDataset);
             this.labledPixels = [];
