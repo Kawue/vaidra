@@ -890,6 +890,7 @@ console.log(this.brushData);
           let cy = this.yScale(point.y) - this.zoomedPointSize / 2;
           ctx.fillRect(cx, cy, this.zoomedPointSize, this.zoomedPointSize);
         });
+        console.log(trackingDict)
       }
       ctx.restore();
     },
