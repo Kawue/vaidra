@@ -237,7 +237,6 @@ if __name__ == "__main__":
     def read_h5_files(pathlist):
         h5_files = []
         fnames = []
-        paths = []
 
         if len(pathlist) > 1:
             for path in pathlist:
@@ -277,7 +276,7 @@ if __name__ == "__main__":
             merged_dframe.fillna(0, inplace=True)
             
             if len(savename) > 0:
-                fnames = [savename]
+                fnames = savename
             else:
                 fnames = ["-".join(fnames)]
                 if len(fnames[0]) > 100:
