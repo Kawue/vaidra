@@ -31,12 +31,13 @@ class PCA(DimensionReducer):
     def perform(self):
         pca = skd.PCA(n_components=self.n_components, whiten=self.whiten, random_state=self.random_state)
         transform = pca.fit_transform(self.data)
-        pca.fit(self.data)
+        #pca.fit(self.data)
         # variance = pca.explained_variance_ratio_ #calculate variance ratios
-        var=np.cumsum(np.round(pca.explained_variance_ratio_, decimals=3)*100)
-        eigenvectors = pca.components_
-        response = {"result": transform, "eigenvectors": eigenvectors, "eigenvalues": var}
-        return response
+        #var=np.cumsum(np.round(pca.explained_variance_ratio_, decimals=3)*100)
+        #eigenvectors = pca.components_
+        #response = {"result": transform, "eigenvectors": eigenvectors, "eigenvalues": var}
+        #return response
+        return transform
 
 class NMF(DimensionReducer):
     def __init__(self, data, n_components, init=None, random_state=None):
@@ -84,9 +85,13 @@ class TSNE(DimensionReducer):
         self.init = init
         self.metric = metric
         self.random_state = random_state
+        if n_components > 3:
+            self.method = "exact"
+        else:
+            self.method = "barnes_hut"
 
     def perform(self):
-        tsne = skm.TSNE(n_components=self.n_components, init=self.init, random_state=self.random_state, metric=self.metric)
+        tsne = skm.TSNE(n_components=self.n_components, init=self.init, random_state=self.random_state, metric=self.metric, method=self.method)
         transform = tsne.fit_transform(self.data)
         return transform
 
@@ -296,8 +301,6 @@ if __name__ == "__main__":
         savepath = set_savepath(savepath, fnames[idx])
         embedding_dframe = DR.to_dframe(embedding, method)
         add = f"_{method}_{n_components}"
-        print(embedding_dframe)
-        print(os.path.join(savepath, fnames[idx] + add + ".h5"))
         embedding_dframe.to_hdf(os.path.join(savepath, fnames[idx] + add + ".h5"), key=fnames[idx]+add, complib="blosc", complevel=9, mode='w')
 
 
