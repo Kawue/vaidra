@@ -198,6 +198,13 @@ def get_embedding_data(embedding_name):
     for (gx, gy, ds), val in ex.iteritems():
         gx = int(gx)
         gy = int(gy)
+        try:
+            yval = round(float(ey[(gx, gy, ds)]), 10)
+        except:
+            print(ey[(gx, gy, ds)])
+            print(type(ey[(gx, gy, ds)]))
+            print()
+            sad
         xval = round(float(val), 10)
         yval = round(float(ey[(gx, gy, ds)]), 10)
 
@@ -381,7 +388,8 @@ def calculateEmbedding():
             if embedding_name not in embeddings.keys():
                 dimred = dimensionreducer_dict[method.lower()](
                     multiple_dframe, dimensions)
-                if (method == "PCA"):
+                #if (method == "PCA"):
+                if (method == "CURRENTLY_DISABLED_FUNCTION"):
                     embedding = dimred.perform()
                     embedding_dframe = dimred.to_dframe(embedding["result"], method)
                     pca_filename_PATH = os.path.join(app.config["PCA_FOLDER"], embedding_name + ".csv")
