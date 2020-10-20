@@ -198,15 +198,11 @@ def get_embedding_data(embedding_name):
     for (gx, gy, ds), val in ex.iteritems():
         gx = int(gx)
         gy = int(gy)
-        try:
+        if type(ey[(gx, gy, ds)]) != np.float64 and type(ey[(gx, gy, ds)]) != float:
+            yval = round(float(ey[(gx, gy, ds)].mean()), 10)
+        else:
             yval = round(float(ey[(gx, gy, ds)]), 10)
-        except:
-            print(ey[(gx, gy, ds)])
-            print(type(ey[(gx, gy, ds)]))
-            print()
-            sad
         xval = round(float(val), 10)
-        yval = round(float(ey[(gx, gy, ds)]), 10)
 
         key = "{:.10f}".format(xval).rstrip("0") + ";" + "{:.10f}".format(yval).rstrip("0") + ";{:s}".format(ds)
         pixels[key] = {
