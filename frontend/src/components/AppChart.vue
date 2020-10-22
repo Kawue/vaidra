@@ -534,7 +534,8 @@ console.log(this.brushData);
       if (this.CSVList.length == 0) {
         bus.$emit("Snackbar", "Please Label Pixel first!");
       } else {
-        const url_createNewDataset = API_URL + "/createDataset";
+        const url_createNewDataset = API_URL + "/createDataset/" + this.selectedCSV.split(".csv")[0];
+        console.log(this.selectedCSV.split(".csv")[0])
 
         axios
           .post(url_createNewDataset)

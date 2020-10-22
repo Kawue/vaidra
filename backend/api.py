@@ -327,34 +327,37 @@ def datasets_imagedata_rgb(dataset_name, embedding_name):
     return response
 
 # --------------- App Chart ---------------------
-@app.route("/createDataset", methods=["POST"])
-def createDataset():
-    for csv_file in os.listdir(app.config["CSV_FOLDER"]):
-        new_df_name = csv_file.split(".csv")[0]
-        path = os.path.join(app.config["CSV_FOLDER"], csv_file)
-        dataset = new_df_name.split("_")[0]
+@app.route("/createDataset/<csv_name>", methods=["POST"])
+def createDataset(csv_name):
+    print(csv_name)
+    #for csv_file in os.listdir(app.config["CSV_FOLDER"]):
+    #new_df_name = csv_file.split(".csv")[0]
+    #path = os.path.join(app.config["CSV_FOLDER"], csv_file)
+    #dataset = new_df_name.split("_")[0]
+    path = os.path.join(app.config["CSV_FOLDER"], csv_name+".csv")
+    dataset = csv_name.split(f"_{csv_name}")[0]
 
-        with open(path, 'r') as csvfile:
-            spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
-            new_dframe = pd.DataFrame()
+    with open(path, 'r') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+        new_dframe = pd.DataFrame()
 
-            for row in spamreader:
-                x_dframe = datasets[dataset].loc[datasets[dataset].index.get_level_values(
-                    "grid_x") == int(row[0])]
-                y_dframe = x_dframe.loc[x_dframe.index.get_level_values(
-                    "grid_y") == int(row[1])]
-                y_dframe = y_dframe.droplevel("dataset")
-                y_dframe.loc[:, "dataset"] = new_df_name
-                y_dframe.set_index("dataset", append=True, inplace=True)
-                new_dframe = new_dframe.append(y_dframe)
-
-            new_df_filename = new_df_name + ".h5"
-            path = os.path.join(app.config["DATASET_FOLDER"], new_df_filename)
-            # an existing file with the same name will be deleted
-            new_dframe.to_hdf(path, key=new_df_name, format='table', mode='w')
-            test_dframe = pd.DataFrame()
-            test_dframe = test_dframe.append(pd.read_hdf(path))
-            print(len(test_dframe.index))
+        for row in spamreader:
+            x_dframe = datasets[dataset].loc[datasets[dataset].index.get_level_values(
+                "grid_x") == int(row[0])]
+            y_dframe = x_dframe.loc[x_dframe.index.get_level_values(
+                "grid_y") == int(row[1])]
+            y_dframe = y_dframe.droplevel("dataset")
+            y_dframe.loc[:, "dataset"] = csv_name
+            y_dframe.set_index("dataset", append=True, inplace=True)
+            new_dframe = new_dframe.append(y_dframe)
+        print(new_dframe)
+        new_df_filename = csv_name + ".h5"
+        path = os.path.join(app.config["DATASET_FOLDER"], new_df_filename)
+        # an existing file with the same name will be deleted
+        new_dframe.to_hdf(path, key=csv_name, format='table', mode='w')
+        test_dframe = pd.DataFrame()
+        test_dframe = test_dframe.append(pd.read_hdf(path))
+        print(len(test_dframe.index))
 
     return "Creation successful!"
 
