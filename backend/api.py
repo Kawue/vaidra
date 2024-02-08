@@ -72,6 +72,14 @@ DATASET_FOLDER = os.path.join(app.root_path, 'datasets')
 EMBEDDING_FOLDER = os.path.join(app.root_path, 'embeddings')
 CSV_FOLDER = os.path.join(app.root_path, 'label_csv')
 PCA_FOLDER = os.path.join(app.root_path, 'pca_data')
+if not os.path.exists(DATASET_FOLDER):
+    os.mkdir(DATASET_FOLDER)
+if not os.path.exists(EMBEDDING_FOLDER):
+    os.mkdir(EMBEDDING_FOLDER)
+if not os.path.exists(CSV_FOLDER):
+    os.mkdir(CSV_FOLDER)
+if not os.path.exists(PCA_FOLDER):
+    os.mkdir(PCA_FOLDER)
 #app.config["DATASET_FOLDER"] = DATASET_FOLDER
 #app.config["EMBEDDING_FOLDER"] = EMBEDDING_FOLDER
 #app.config["CSV_FOLDER"] = CSV_FOLDER
