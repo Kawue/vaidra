@@ -15,12 +15,6 @@ from pyscripts.mzDataset import MzDataSet, DimRedDataSet
 import csv
 
 
-DATASET_FOLDER = './datasets/'
-EMBEDDING_FOLDER = './embeddings/'
-CSV_FOLDER = './label_csv/'
-PCA_FOLDER = './pca_data/'
-
-
 # --------------- Data Variables -------------------
 datasets = {}
 embeddings = {}
@@ -60,24 +54,28 @@ dimensionreducer_dict = {
 
 # --------------- Read files in folders -------------------
 def readDatasets():
-    for dataset in os.listdir(app.config["DATASET_FOLDER"]):
-        path = os.path.join(app.config["DATASET_FOLDER"], dataset)
+    for dataset in os.listdir(DATASET_FOLDER):
+        path = os.path.join(DATASET_FOLDER, dataset)
         name = dataset.split(".h5")[0]
         datasets[name] = pd.read_hdf(path)
 
 
 def readEmbeddings():
-    for embedding in os.listdir(app.config["EMBEDDING_FOLDER"]):
-        path = os.path.join(app.config["EMBEDDING_FOLDER"], embedding)
+    for embedding in os.listdir(EMBEDDING_FOLDER):
+        path = os.path.join(EMBEDDING_FOLDER, embedding)
         name = embedding.split(".h5")[0]
         embeddings[name] = pd.read_hdf(path)
 
 
 app = Flask(__name__, static_url_path='')
-app.config["DATASET_FOLDER"] = DATASET_FOLDER
-app.config["EMBEDDING_FOLDER"] = EMBEDDING_FOLDER
-app.config["CSV_FOLDER"] = CSV_FOLDER
-app.config["PCA_FOLDER"] = PCA_FOLDER
+DATASET_FOLDER = os.path.join(app.root_path, 'datasets')
+EMBEDDING_FOLDER = os.path.join(app.root_path, 'embeddings')
+CSV_FOLDER = os.path.join(app.root_path, 'label_csv')
+PCA_FOLDER = os.path.join(app.root_path, 'pca_data')
+#app.config["DATASET_FOLDER"] = DATASET_FOLDER
+#app.config["EMBEDDING_FOLDER"] = EMBEDDING_FOLDER
+#app.config["CSV_FOLDER"] = CSV_FOLDER
+#app.config["PCA_FOLDER"] = PCA_FOLDER
 readDatasets()
 readEmbeddings()
 CORS(app)
@@ -105,7 +103,7 @@ def get_embeddings():
 @app.route('/csvs/<dataset_name>')
 def get_csvs(dataset_name):
     csv_list = []
-    for csv in os.listdir(app.config["CSV_FOLDER"]):
+    for csv in os.listdir(CSV_FOLDER):
         e_name = dataset_name.split(".h5")[0]
         ce_name = csv.split("_")[0]
         if (ce_name in e_name):
@@ -145,6 +143,14 @@ def dataset_image_dimension(data_name, flag):
 # Get pixel data
 @app.route('/datasets/<dataset_name>/pixeldata', methods=['GET'])
 def get_dataset_pixel(dataset_name):
+    ##print(datasets)
+    ##print("-----")
+    ##print(datasets.keys())
+    ##print("-----")
+    ##print(dataset_name)
+    ##print("-----")
+    #print(datasets[dataset_name])
+    ##print("-----")
     pixels = zip(datasets[dataset_name].index.get_level_values(
         "grid_x"), datasets[dataset_name].index.get_level_values("grid_y"))
     response = {
@@ -159,7 +165,7 @@ def get_csv_data():
     if not csv_file_name:
         return "No File"
 
-    path = os.path.join(app.config["CSV_FOLDER"], csv_file_name)
+    path = os.path.join(CSV_FOLDER, csv_file_name)
     with open(path, 'r') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
         response = []
@@ -195,7 +201,7 @@ def get_embedding_data(embedding_name):
     intensities = {}
     pixels = {}
 
-    for (gx, gy, ds), val in ex.iteritems():
+    for (gx, gy, ds), val in ex.items():
         gx = int(gx)
         gy = int(gy)
         if type(ey[(gx, gy, ds)]) != np.float64 and type(ey[(gx, gy, ds)]) != float:
@@ -329,12 +335,12 @@ def datasets_imagedata_rgb(dataset_name, embedding_name):
 # --------------- App Chart ---------------------
 @app.route("/createDataset/<csv_name>", methods=["POST"])
 def createDataset(csv_name):
-    print(csv_name)
+    ##print(csv_name)
     #for csv_file in os.listdir(app.config["CSV_FOLDER"]):
     #new_df_name = csv_file.split(".csv")[0]
     #path = os.path.join(app.config["CSV_FOLDER"], csv_file)
     #dataset = new_df_name.split("_")[0]
-    path = os.path.join(app.config["CSV_FOLDER"], csv_name+".csv")
+    path = os.path.join(CSV_FOLDER, csv_name+".csv")
     dataset = csv_name.split(f"_{csv_name}")[0]
 
     with open(path, 'r') as csvfile:
@@ -349,15 +355,16 @@ def createDataset(csv_name):
             y_dframe = y_dframe.droplevel("dataset")
             y_dframe.loc[:, "dataset"] = csv_name
             y_dframe.set_index("dataset", append=True, inplace=True)
-            new_dframe = new_dframe.append(y_dframe)
-        print(new_dframe)
+            #new_dframe = new_dframe.append(y_dframe)
+            new_dframe = pd.concat([new_dframe,y_dframe])
+        ##print(new_dframe)
         new_df_filename = csv_name + ".h5"
-        path = os.path.join(app.config["DATASET_FOLDER"], new_df_filename)
+        path = os.path.join(DATASET_FOLDER, new_df_filename)
         # an existing file with the same name will be deleted
         new_dframe.to_hdf(path, key=csv_name, format='table', mode='w')
         test_dframe = pd.DataFrame()
-        test_dframe = test_dframe.append(pd.read_hdf(path))
-        print(len(test_dframe.index))
+        test_dframe = pd.concat([test_dframe, pd.read_hdf(path)])
+        ##print(len(test_dframe.index))
 
     return "Creation successful!"
 
@@ -368,12 +375,11 @@ def calculateEmbedding():
     dataset_names = request.form["dataset_name"].split(",")
     multiple_dframe = pd.DataFrame()
     for i in range(len(dataset_names)):
-        path = os.path.join(
-                app.config["DATASET_FOLDER"], dataset_names[i] + ".h5")
+        path = os.path.join(DATASET_FOLDER, dataset_names[i] + ".h5")
         if dataset_names[i] not in datasets.keys():
             request.files[dataset_names[i]].save(path)
         # dframe = h5py_to_dframe(request.files[dataset_names[i]], dataset_names[i])
-        multiple_dframe = multiple_dframe.append(pd.read_hdf(path)).fillna(0)
+        multiple_dframe = pd.concat([multiple_dframe, pd.read_hdf(path)]).fillna(0)
 
     dimensions = int(request.form["dim"])
     if (len(multiple_dframe.index) >= dimensions):
@@ -391,8 +397,8 @@ def calculateEmbedding():
                 if (method == "CURRENTLY_DISABLED_FUNCTION"):
                     embedding = dimred.perform()
                     embedding_dframe = dimred.to_dframe(embedding["result"], method)
-                    pca_filename_PATH = os.path.join(app.config["PCA_FOLDER"], embedding_name + ".csv")
-                    if pca_filename_PATH not in os.listdir(app.config["PCA_FOLDER"]):
+                    pca_filename_PATH = os.path.join(PCA_FOLDER, embedding_name + ".csv")
+                    if pca_filename_PATH not in os.listdir(PCA_FOLDER):
                         with open(pca_filename_PATH, 'w', newline='') as csvfile:
                             spamwriter = csv.writer(
                                 csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
@@ -404,8 +410,7 @@ def calculateEmbedding():
                 else:
                     embedding = dimred.perform()
                     embedding_dframe = dimred.to_dframe(embedding, method)
-                path = os.path.join(
-                    app.config["EMBEDDING_FOLDER"], embedding_name + ".h5")
+                path = os.path.join(EMBEDDING_FOLDER, embedding_name + ".h5")
                 embedding_dframe.to_hdf(
                     path, key=embedding_name, complib="blosc", complevel=9)
                 embeddings[embedding_name] = embedding_dframe
@@ -422,9 +427,8 @@ def submitData():
         for i in range(len(dataset_names)):
             datafile = request.files[dataset_names[i]]
             if datafile.filename not in datasets.keys():
-                path = os.path.join(
-                    app.config["DATASET_FOLDER"], datafile.filename)
-                print(path)
+                path = os.path.join(DATASET_FOLDER, datafile.filename)
+                ##print(path)
                 datafile.save(path)
                 msidframe = pd.read_hdf(path)
                 datasets[datafile.filename] = msidframe
@@ -441,8 +445,7 @@ def submitData():
         for i in range(len(embedding_names)):
             embedding_file = request.files[embedding_names[i]]
             if embedding_file.filename not in embeddings.keys():
-                path = os.path.join(
-                    app.config["EMBEDDING_FOLDER"], embedding_file.filename)
+                path = os.path.join(EMBEDDING_FOLDER, embedding_file.filename)
                 embedding_file.save(path)
                 embedding_dframe = pd.read_hdf(path)
                 embeddings[embedding_file.filename] = embedding_dframe
@@ -454,10 +457,9 @@ def submitData():
         csv_names = request.form["csv_names"].split(",")
         for i in range(len(csv_names)):
             csv_file = request.files[csv_names[i]]
-            if (csv_file.filename not in os.listdir(app.config["CSV_FOLDER"])):
-                path = os.path.join(
-                    app.config["CSV_FOLDER"], csv_file.filename)
-                print(path)
+            if (csv_file.filename not in os.listdir(CSV_FOLDER)):
+                path = os.path.join(CSV_FOLDER, csv_file.filename)
+                ##print(path)
                 csv_file.save(path)
     except Exception as e:
         print(e)
@@ -472,9 +474,9 @@ def label():
     d_name = request.form['dataset']
     csv_filename_PATH = d_name + '_' + \
         request.form['labelname'].strip() + '.csv'
-    print(labellist)
-    print(len(labellist))
-    if csv_filename_PATH not in os.listdir(app.config["CSV_FOLDER"]):
+    ##print(labellist)
+    ##print(len(labellist))
+    if csv_filename_PATH not in os.listdir(CSV_FOLDER):
         with open('label_csv/' + csv_filename_PATH, 'w', newline='') as csvfile:
             spamwriter = csv.writer(
                 csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)

@@ -1,10 +1,10 @@
 <template>
   <v-app>
-    <v-content>
+    <v-main>
       <AppToolbar/>
       <AppOutput/>
       <AppFooter/>
-    </v-content>
+    </v-main>
 
 
   </v-app>
